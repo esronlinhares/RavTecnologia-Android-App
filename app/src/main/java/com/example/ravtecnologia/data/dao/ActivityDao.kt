@@ -2,6 +2,7 @@ package com.example.ravtecnologia.data.dao
 
 import androidx.room.*
 import com.example.ravtecnologia.data.entity.ActivityEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ActivityDao {
@@ -16,9 +17,8 @@ interface ActivityDao {
     suspend fun deleteActivity(activity: ActivityEntity)
 
     @Query("SELECT * FROM activities ORDER BY dataLimite ASC")
-    suspend fun getAllActivities(): List<ActivityEntity>
+    fun getAllActivitiesFlow(): Flow<List<ActivityEntity>>
 
     @Query("SELECT * FROM activities WHERE id = :id")
     suspend fun getActivityById(id: Int): ActivityEntity?
-
 }

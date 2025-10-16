@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RavTecnologiaTheme {
-                MainScreen() // chama a tela principal
+                MainScreen()
             }
         }
     }

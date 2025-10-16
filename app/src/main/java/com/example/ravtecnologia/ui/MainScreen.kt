@@ -1,58 +1,84 @@
 package com.example.ravtecnologia.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.compose.*
+import com.example.ravtecnologia.data.database.AppDatabase
+import com.example.ravtecnologia.data.entity.ActivityEntity
+import com.example.ravtecnologia.ui.list.*
+import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+
 
 data class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
+    val context = LocalContext.current
+    val db = AppDatabase.getDatabase(context)
+    val activityDao = db.activityDao()
+    val scope = rememberCoroutineScope()
+
+    var showAddDialog by remember { mutableStateOf(false) }
     val navController = rememberNavController()
-    val items = listOf(
+
+    val activities by activityDao.getAllActivitiesFlow().collectAsState(initial = emptyList())
+
+    val bottomItems = listOf(
         BottomNavItem("pendentes", "Pendentes", Icons.Default.Pending),
         BottomNavItem("andamento", "Em andamento", Icons.Default.HourglassBottom),
         BottomNavItem("concluidas", "Concluídas", Icons.Default.CheckCircle)
     )
 
     Scaffold(
+        topBar = { TopAppBar(title = { Text("Minhas Atividades") }) },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* TODO: abrir modal de nova atividade */ },
-                containerColor = Color(0xFFD1B2FF),
-                elevation = FloatingActionButtonDefaults.elevation(6.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Adicionar atividade",
-                    tint = Color(0xFF3B0066)
-                )
+            FloatingActionButton(onClick = { showAddDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = null)
             }
         },
-        floatingActionButtonPosition = FabPosition.End,
-        bottomBar = { BottomNavigationBar(navController, items) }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = "pendentes",
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable("pendentes") { PlaceholderScreen("Pendentes") }
-            composable("andamento") { PlaceholderScreen("Em andamento") }
-            composable("concluidas") { PlaceholderScreen("Concluídas") }
+        bottomBar = { BottomNavigationBar(navController, bottomItems) }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+            NavHost(navController, startDestination = "pendentes") {
+                composable("pendentes") {
+                    PendingScreen(
+                        activities = activities.filter { it.status == "Pendente" },
+                        onStart = { a -> scope.launch { activityDao.updateActivity(a.copy(status = "Em andamento")) } },
+                        onComplete = { a -> scope.launch { activityDao.updateActivity(a.copy(status = "Concluída", concluidoEm = LocalDateTime.now())) } },
+                        onDelete = { a -> scope.launch { activityDao.deleteActivity(a) } }
+                    )
+                }
+                composable("andamento") {
+                    InProgressScreen(
+                        activities = activities.filter { it.status == "Em andamento" },
+                        onComplete = { a -> scope.launch { activityDao.updateActivity(a.copy(status = "Concluída", concluidoEm = LocalDateTime.now())) } },
+                        onDelete = { a -> scope.launch { activityDao.deleteActivity(a) } }
+                    )
+                }
+                composable("concluidas") {
+                    CompletedScreen(
+                        activities = activities.filter { it.status == "Concluída" },
+                        onDelete = { a -> scope.launch { activityDao.deleteActivity(a) } }
+                    )
+                }
+            }
+
+            if (showAddDialog) {
+                AddActivityDialog(
+                    onAdd = { newEntity -> scope.launch { activityDao.insertActivity(newEntity) }; showAddDialog = false },
+                    onDismiss = { showAddDialog = false }
+                )
+            }
         }
     }
 }
@@ -62,7 +88,6 @@ fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavI
     NavigationBar(containerColor = Color(0xFFE6D6FF)) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
-
         items.forEach { item ->
             NavigationBarItem(
                 selected = currentRoute == item.route,
@@ -76,19 +101,5 @@ fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavI
                 )
             )
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
-        )
     }
 }
