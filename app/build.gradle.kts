@@ -96,4 +96,6 @@ dependencies {
     // Coil para imagens
     implementation("io.coil-kt:coil-compose:2.4.0")
 
+
+
 }

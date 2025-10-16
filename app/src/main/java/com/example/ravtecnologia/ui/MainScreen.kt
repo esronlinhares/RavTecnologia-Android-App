@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import androidx.navigation.NavHostController
 
-
 data class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,12 +61,29 @@ fun MainScreen() {
                     InProgressScreen(
                         activities = activities.filter { it.status == "Em andamento" },
                         onComplete = { a -> scope.launch { activityDao.updateActivity(a.copy(status = "Concluída", concluidoEm = LocalDateTime.now())) } },
+                        onChangeStatus = { activity, newStatus ->
+                            if (newStatus == "Pendente") {
+                                scope.launch { activityDao.updateActivity(activity.copy(status = "Pendente")) }
+                            }
+                        },
                         onDelete = { a -> scope.launch { activityDao.deleteActivity(a) } }
+
                     )
                 }
+
                 composable("concluidas") {
                     CompletedScreen(
                         activities = activities.filter { it.status == "Concluída" },
+                        onChangeStatus = { activity, newStatus ->
+                            scope.launch {
+                                val updatedActivity = when (newStatus) {
+                                    "Pendente" -> activity.copy(status = "Pendente", concluidoEm = null)
+                                    "Em andamento" -> activity.copy(status = "Em andamento", concluidoEm = null)
+                                    else -> activity
+                                }
+                                activityDao.updateActivity(updatedActivity)
+                            }
+                        },
                         onDelete = { a -> scope.launch { activityDao.deleteActivity(a) } }
                     )
                 }
@@ -75,7 +91,10 @@ fun MainScreen() {
 
             if (showAddDialog) {
                 AddActivityDialog(
-                    onAdd = { newEntity -> scope.launch { activityDao.insertActivity(newEntity) }; showAddDialog = false },
+                    onAdd = { newEntity ->
+                        scope.launch { activityDao.insertActivity(newEntity) }
+                        showAddDialog = false
+                    },
                     onDismiss = { showAddDialog = false }
                 )
             }

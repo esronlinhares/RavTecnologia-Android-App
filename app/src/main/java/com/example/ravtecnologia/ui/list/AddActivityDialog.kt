@@ -1,7 +1,8 @@
-package com.example.ravtecnologia.ui
+package com.example.ravtecnologia.ui.list
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.ravtecnologia.data.entity.ActivityEntity
 import java.io.File
+import java.io.FileOutputStream
 import java.time.LocalDateTime
 import java.util.*
 
@@ -25,6 +27,7 @@ fun AddActivityDialog(
     var description by remember { mutableStateOf("") }
     var selectedDateTime by remember { mutableStateOf<LocalDateTime?>(null) }
     var imageUri by remember { mutableStateOf<String?>(null) }
+    var showAlert by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -62,19 +65,15 @@ fun AddActivityDialog(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            // Cria um arquivo local no armazenamento interno
             val inputStream = context.contentResolver.openInputStream(it)
             val file = File(context.filesDir, "image_${System.currentTimeMillis()}.jpg")
-            inputStream?.use { input ->
-                file.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-            imageUri = file.absolutePath // salva o caminho real da imagem
+            inputStream?.use { input -> file.outputStream().use { output -> input.copyTo(output) } }
+            imageUri = file.absolutePath
         }
     }
 
-    // ----- DIALOG -----
+
+    // ----- MAIN DIALOG -----
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Nova Atividade") },
@@ -94,12 +93,11 @@ fun AddActivityDialog(
                 )
                 Spacer(Modifier.height(8.dp))
 
-                // Botão para selecionar imagem
                 Button(onClick = { galleryLauncher.launch("image/*") }) {
                     Text(if (imageUri == null) "Adicionar Imagem" else "Trocar Imagem")
                 }
 
-                // Preview da imagem selecionada
+                // Preview da imagem
                 imageUri?.let {
                     Spacer(Modifier.height(8.dp))
                     AsyncImage(
@@ -123,21 +121,47 @@ fun AddActivityDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (title.isNotBlank() && selectedDateTime != null) {
-                    onAdd(
-                        ActivityEntity(
-                            titulo = title,
-                            descricao = description,
-                            dataLimite = selectedDateTime!!,
-                            imagemUri = imageUri
-                        )
-                    )
-                    onDismiss()
+                if (title.isBlank()) {
+                    Toast.makeText(context, "Digite um título.", Toast.LENGTH_SHORT).show()
+                    return@TextButton
                 }
-            }) { Text("Adicionar") }
+
+                if (selectedDateTime == null) {
+                    showAlert = true
+                    return@TextButton
+                }
+
+                onAdd(
+                    ActivityEntity(
+                        titulo = title,
+                        descricao = description,
+                        dataLimite = selectedDateTime!!,
+                        imagemUri = imageUri
+                    )
+                )
+
+                Toast.makeText(context, "Atividade adicionada!", Toast.LENGTH_SHORT).show()
+                onDismiss()
+            }) {
+                Text("Adicionar")
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancelar") }
         }
     )
+
+    // ----- ALERTA DE DATA/HORA -----
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            confirmButton = {
+                TextButton(onClick = { showAlert = false }) {
+                    Text("OK")
+                }
+            },
+            title = { Text("Atenção") },
+            text = { Text("Selecione a data e a hora antes de adicionar.") }
+        )
+    }
 }

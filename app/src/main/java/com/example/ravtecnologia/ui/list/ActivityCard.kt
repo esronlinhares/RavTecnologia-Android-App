@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.ravtecnologia.data.entity.ActivityEntity
 import java.time.LocalDateTime
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Alignment
 
 @Composable
 fun ActivityCard(
@@ -18,7 +20,8 @@ fun ActivityCard(
     showComplete: Boolean = true,
     onStart: ((ActivityEntity) -> Unit)? = null,
     onComplete: ((ActivityEntity) -> Unit)? = null,
-    onDelete: ((ActivityEntity) -> Unit)? = null  // <- agora é nullable
+    onDelete: ((ActivityEntity) -> Unit)? = null,
+    onChangeStatus: ((ActivityEntity, String) -> Unit)? = null // para mudar status
 ) {
     val isOverdue = activity.dataLimite.isBefore(LocalDateTime.now()) && activity.status != "Concluída"
     val cardColor = when {
@@ -38,7 +41,7 @@ fun ActivityCard(
             Text(text = activity.descricao, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Data limite: ${activity.dataLimite.dayOfMonth}/${activity.dataLimite.monthValue}/${activity.dataLimite.year} ${activity.dataLimite.hour}:${activity.dataLimite.minute}"
+                text = "Data limite: ${activity.dataLimite.dayOfMonth}/${activity.dataLimite.monthValue}/${activity.dataLimite.year} ${activity.dataLimite.hour}:${activity.dataLimite.minute.toString().padStart(2,'0')}"
             )
 
             activity.concluidoEm?.let {
@@ -50,9 +53,14 @@ fun ActivityCard(
                 AsyncImage(
                     model = uri,
                     contentDescription = "Imagem da atividade",
-                    modifier = Modifier.fillMaxWidth().height(150.dp)
+                    modifier = Modifier
+                        .height(150.dp)           // define altura fixa
+                        .wrapContentWidth()       // largura mínima, não ocupa toda a tela
+                        .align(Alignment.Start),  // alinha à esquerda dentro da coluna
+                    contentScale = ContentScale.Fit // mantém proporção original
                 )
             }
+
 
             Spacer(Modifier.height(8.dp))
 
@@ -63,6 +71,24 @@ fun ActivityCard(
                 if (showComplete && onComplete != null) {
                     Button(onClick = { onComplete(activity) }) { Text("Concluir") }
                 }
+
+                // Botões de mudança de status
+                onChangeStatus?.let { change ->
+                    when (activity.status) {
+                        "Concluída" -> {
+                            Button(onClick = { change(activity, "Pendente") }) { Text("Pendente") }
+                            Button(onClick = { change(activity, "Em andamento") }) { Text("Em andamento") }
+                        }
+                        "Em andamento" -> {
+                            Button(onClick = { change(activity, "Pendente") }) { Text("Pendente") }
+                        }
+                        "Pendente" -> {
+                            Button(onClick = { change(activity, "Em andamento") }) { Text("Em andamento") }
+                        }
+                    }
+                }
+
+                // Botão de exclusão (por último)
                 if (onDelete != null) {
                     Button(
                         onClick = { onDelete(activity) },

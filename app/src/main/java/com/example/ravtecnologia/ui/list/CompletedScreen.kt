@@ -13,7 +13,8 @@ import com.example.ravtecnologia.data.entity.ActivityEntity
 @Composable
 fun CompletedScreen(
     activities: List<ActivityEntity>,
-    onDelete: ((ActivityEntity) -> Unit)? = null
+    onDelete: ((ActivityEntity) -> Unit)? = null,
+    onChangeStatus: ((ActivityEntity, String) -> Unit)? = null
 ) {
     if (activities.isEmpty()) {
         Box(
@@ -33,9 +34,12 @@ fun CompletedScreen(
                     activity = activity,
                     showStart = false,
                     showComplete = false,
-                    onDelete = { onDelete?.invoke(activity) } // corrige chamada
+                    onChangeStatus = onChangeStatus,
+                    onDelete = { onDelete?.invoke(activity) }
                 )
             }
         }
     }
 }
+
+
