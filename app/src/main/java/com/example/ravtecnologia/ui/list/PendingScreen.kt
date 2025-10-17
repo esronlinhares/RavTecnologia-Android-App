@@ -13,31 +13,39 @@ import java.time.LocalDateTime
 
 @Composable
 fun PendingScreen(
-    activities: List<ActivityEntity>,
-    onStart: ((ActivityEntity) -> Unit)? = null,
-    onComplete: ((ActivityEntity) -> Unit)? = null,
-    onDelete: ((ActivityEntity) -> Unit)? = null
+    activities: List<ActivityEntity>, // lista de atividades pendentes
+    onStart: ((ActivityEntity) -> Unit)? = null, // ação de começar
+    onComplete: ((ActivityEntity) -> Unit)? = null,// ação de concluir
+    onDelete: ((ActivityEntity) -> Unit)? = null // ação de excluir
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Todas", "Atrasadas")
+    var selectedTab by remember { mutableStateOf(0) } // aba selecionada
+    val tabs = listOf("Todas", "Atrasadas")           // nomes das abas
 
+    // filtra se for aba de atrasadas
     val filteredActivities = when (selectedTab) {
         1 -> activities.filter { it.dataLimite.isBefore(LocalDateTime.now()) }
         else -> activities
     }
 
     Column {
+        // barra de abas (tabs)
         TabRow(selectedTabIndex = selectedTab) {
             tabs.forEachIndexed { index, title ->
-                Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(title) })
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = { Text(title) }
+                )
             }
         }
 
         if (filteredActivities.isEmpty()) {
+            // mensagem se não houver pendentes
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Nenhuma atividade")
             }
         } else {
+            // lista atividades filtradas
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp),
@@ -46,8 +54,8 @@ fun PendingScreen(
                 items(filteredActivities) { activity ->
                     ActivityCard(
                         activity = activity,
-                        showStart = true,
-                        showComplete = true,
+                        showStart = true, // mostra botão "Começar"
+                        showComplete = true, // também pode "Concluir"
                         onStart = onStart,
                         onComplete = onComplete,
                         onDelete = onDelete

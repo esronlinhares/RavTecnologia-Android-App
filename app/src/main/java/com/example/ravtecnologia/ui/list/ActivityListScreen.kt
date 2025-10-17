@@ -12,27 +12,28 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun ActivityListScreen(
-    title: String,
-    activities: List<ActivityModel>,
-    onStart: (Int) -> Unit,
-    onComplete: (Int) -> Unit,
-    onDelete: (Int) -> Unit
+    title: String, // título opcional da tela
+    activities: List<ActivityModel>, // lista de atividades exibidas
+    onStart: (Int) -> Unit, // callback ao clicar em "Começar"
+    onComplete: (Int) -> Unit, // callback ao clicar em "Concluir"
+    onDelete: (Int) -> Unit // callback ao clicar em "Excluir"
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        // título opcional: se quiser mostrar no topo, descomente
-        // Text(text = title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(16.dp))
 
+        // mostra mensagem se a lista estiver vazia
         if (activities.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Nenhuma atividade encontrada.")
             }
         } else {
+            // exibe lista de atividades
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(activities) { activity ->
+                    // cada item é um card simples com botões
                     ActivityCardRow(
                         activity = activity,
                         onStart = { onStart(activity.id) },
@@ -52,11 +53,10 @@ private fun ActivityCardRow(
     onComplete: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm") // formata data
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(activity.titulo, style = MaterialTheme.typography.titleMedium)
@@ -67,17 +67,17 @@ private fun ActivityCardRow(
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // mostrar "Começar" apenas se pendente
+                // botão "Começar" aparece só se estiver pendente
                 if (activity.status == "pendente") {
                     Button(onClick = onStart) { Text("Começar") }
                 }
 
-                // mostrar "Concluir" se pendente ou andamento
+                // botão "Concluir" aparece se não estiver concluída
                 if (activity.status != "concluida") {
                     Button(onClick = onComplete) { Text("Concluir") }
                 }
 
-                // excluir sempre disponível
+                // botão "Excluir" sempre disponível
                 OutlinedButton(onClick = onDelete) { Text("Excluir") }
             }
         }

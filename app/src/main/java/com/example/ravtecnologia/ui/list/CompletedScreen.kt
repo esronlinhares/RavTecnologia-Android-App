@@ -12,11 +12,12 @@ import com.example.ravtecnologia.data.entity.ActivityEntity
 
 @Composable
 fun CompletedScreen(
-    activities: List<ActivityEntity>,
-    onDelete: ((ActivityEntity) -> Unit)? = null,
-    onChangeStatus: ((ActivityEntity, String) -> Unit)? = null
+    activities: List<ActivityEntity>, // lista de atividades concluídas
+    onDelete: ((ActivityEntity) -> Unit)? = null, // ação de excluir
+    onChangeStatus: ((ActivityEntity, String) -> Unit)? = null // alterar status, se precisar
 ) {
     if (activities.isEmpty()) {
+        // mensagem se não houver atividades concluídas
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -24,22 +25,22 @@ fun CompletedScreen(
             Text("Nenhuma atividade concluída")
         }
     } else {
+        // lista as atividades concluídas
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // cada item é um ActivityCard
             items(activities) { activity ->
                 ActivityCard(
                     activity = activity,
-                    showStart = false,
-                    showComplete = false,
+                    showStart = false,     // não mostra botão "Começar"
+                    showComplete = false,  // nem "Concluir"
                     onChangeStatus = onChangeStatus,
-                    onDelete = { onDelete?.invoke(activity) }
+                    onDelete = { onDelete?.invoke(activity) } // permite excluir
                 )
             }
         }
     }
 }
-
-
