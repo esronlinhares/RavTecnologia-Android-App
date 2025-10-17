@@ -16,13 +16,14 @@ import com.example.ravtecnologia.data.entity.ActivityEntity
 import java.io.File
 import java.time.LocalDateTime
 import java.util.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 @Composable
 fun AddActivityDialog(
-    onAdd: (ActivityEntity) -> Unit, // callback ao confirmar criação
-    onDismiss: () -> Unit // fecha o diálogo
+    onAdd: (ActivityEntity) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    // estados locais do formulário
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedDateTime by remember { mutableStateOf<LocalDateTime?>(null) }
@@ -32,18 +33,16 @@ fun AddActivityDialog(
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
-    // seletor de data e hora
+    // ----- DATE + TIME PICKER -----
     val datePicker = DatePickerDialog(
         context,
         { _, year, month, dayOfMonth ->
             calendar.set(year, month, dayOfMonth)
-            // abre o seletor de hora após escolher data
             TimePickerDialog(
                 context,
                 { _, hourOfDay, minute ->
                     calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
                     calendar.set(Calendar.MINUTE, minute)
-                    // salva data e hora escolhidas
                     selectedDateTime = LocalDateTime.of(
                         calendar.get(Calendar.YEAR),
                         calendar.get(Calendar.MONTH) + 1,
@@ -62,7 +61,7 @@ fun AddActivityDialog(
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    // seletor de imagem da galeria
+    // ----- IMAGE PICKER -----
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -70,38 +69,54 @@ fun AddActivityDialog(
             val inputStream = context.contentResolver.openInputStream(it)
             val file = File(context.filesDir, "image_${System.currentTimeMillis()}.jpg")
             inputStream?.use { input -> file.outputStream().use { output -> input.copyTo(output) } }
-            imageUri = file.absolutePath // salva caminho da imagem
+            imageUri = file.absolutePath
         }
     }
 
-    // diálogo principal de adicionar atividade
+    // ----- MAIN DIALOG -----
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Nova Atividade") },
         text = {
             Column {
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") })
+                // Campo título com teclado configurado para aceitar acentos e cedilha
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Título") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
                 Spacer(Modifier.height(8.dp))
 
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descrição") })
+                // Campo descrição com teclado configurado
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Descrição") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
                 Spacer(Modifier.height(8.dp))
 
+                // Botão para adicionar/alterar imagem
                 Button(onClick = { galleryLauncher.launch("image/*") }) {
                     Text(if (imageUri == null) "Adicionar Imagem" else "Trocar Imagem")
                 }
 
-                // prévia da imagem escolhida
+                // Preview da imagem
                 imageUri?.let {
                     Spacer(Modifier.height(8.dp))
                     AsyncImage(
                         model = File(it),
                         contentDescription = "Imagem selecionada",
-                        modifier = Modifier.fillMaxWidth().height(180.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
                     )
                 }
 
                 Spacer(Modifier.height(8.dp))
-                // botão para escolher data/hora
+
+                // Botão para escolher data e hora
                 Button(onClick = { datePicker.show() }) {
                     Text(
                         selectedDateTime?.let {
@@ -113,18 +128,14 @@ fun AddActivityDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                // validações básicas
                 if (title.isBlank()) {
                     Toast.makeText(context, "Digite um título.", Toast.LENGTH_SHORT).show()
                     return@TextButton
                 }
-
                 if (selectedDateTime == null) {
                     showAlert = true
                     return@TextButton
                 }
-
-                // cria nova ActivityEntity e adiciona ao banco
                 onAdd(
                     ActivityEntity(
                         titulo = title,
@@ -133,21 +144,24 @@ fun AddActivityDialog(
                         imagemUri = imageUri
                     )
                 )
-
                 Toast.makeText(context, "Atividade adicionada!", Toast.LENGTH_SHORT).show()
                 onDismiss()
             }) {
                 Text("Adicionar")
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
     )
 
-    // alerta caso tente adicionar sem escolher data/hora
+    // ----- ALERTA DE DATA/HORA -----
     if (showAlert) {
         AlertDialog(
             onDismissRequest = { showAlert = false },
-            confirmButton = { TextButton(onClick = { showAlert = false }) { Text("OK") } },
+            confirmButton = {
+                TextButton(onClick = { showAlert = false }) { Text("OK") }
+            },
             title = { Text("Atenção") },
             text = { Text("Selecione a data e a hora antes de adicionar.") }
         )
