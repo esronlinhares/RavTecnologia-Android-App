@@ -83,11 +83,9 @@ com.example.ravtecnologia
 ---
 
 ## 🖼️ Telas do App
-![Pendentes](https://i.imgur.com/LHXzmNH.png)
-![Texto Alternativo](https://i.imgur.com/eeREQhx.png)
 
-![Em andamento](https://i.imgur.com/viDa2Ew.png)
-![Concluídas](https://i.imgur.com/WQyhmla.png)
+<img src="https://i.imgur.com/LHXzmNH.png" width="200" /> <img src="https://i.imgur.com/eeREQhx.png" width="200" /> <img src="https://i.imgur.com/viDa2Ew.png" width="200" /> <img src="https://i.imgur.com/WQyhmla.png" width="200" />
+
 ---
 
 ## 💡 Observações
