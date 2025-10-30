@@ -83,11 +83,11 @@ com.example.ravtecnologia
 ---
 
 ## 🖼️ Telas do App
-![Pendentes](https://media.discordapp.net/attachments/523392633859473408/1428545724836220938/Screenshot_20251016_213757.png?ex=68f2e461&is=68f192e1&hm=c6439615f083201fc6314bfdfabb6bb4a27a218bf8422423080244ca7e34a0ce&=&format=webp&quality=lossless&width=256&height=570)
-![Texto Alternativo](https://media.discordapp.net/attachments/523392633859473408/1428545725536407623/Screenshot_20251016_213815.png?ex=68f2e462&is=68f192e2&hm=291cbbf4779582f8069dfffced7627a7526c8ff6c9cdebbe94d9337b1484c3f6&=&format=webp&quality=lossless&width=256&height=570)
+![Pendentes](https://i.imgur.com/LHXzmNH.png)
+![Texto Alternativo](https://i.imgur.com/eeREQhx.png)
 
-![Em andamento](https://media.discordapp.net/attachments/523392633859473408/1428545726522200104/Screenshot_20251016_214234.png?ex=68f2e462&is=68f192e2&hm=d37c01f2973b7705e58a128f37de8f95a7c7a27dbfefcbc55911f1fdc08640ae&=&format=webp&quality=lossless&width=256&height=570)
-![Concluídas](https://media.discordapp.net/attachments/523392633859473408/1428545723820933253/Screenshot_20251016_214254.png?ex=68f2e461&is=68f192e1&hm=6fa7b1dc67ae150938716e03b5e4d3b44a82988f865af42efa545e3f79d1646c&=&format=webp&quality=lossless&width=256&height=570)
+![Em andamento](https://i.imgur.com/viDa2Ew.png)
+![Concluídas](https://i.imgur.com/WQyhmla.png)
 ---
 
 ## 💡 Observações
